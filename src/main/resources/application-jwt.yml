@@ -1,0 +1,8 @@
+jwt:
+  issuer: dudwnszero99@gmail.com
+  secretKey: Order_API
+  access:
+    header: Authorization
+
+  refresh:
+    header: Authorization-refresh

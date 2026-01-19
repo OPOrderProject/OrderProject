@@ -1,0 +1,51 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.1'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'kr.co'
+version = '0.0.1-SNAPSHOT'
+description = 'OrderAPI'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf' 		// 템플릿 엔진
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'          // JPA Data 관련 기능 제공
+	runtimeOnly "mysql:mysql-connector-java:8.0.32"                                 // MySQL connector 제공
+	compileOnly 'org.projectlombok:lombok:1.18.30'                                  // 각종 Annotation 제공
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+	implementation 'org.hibernate.validator:hibernate-validator:8.0.0.Final'        // Hibernate-Validator
+	implementation 'org.springframework.boot:spring-boot-starter-validation'		// 유효성 검사 지원
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	runtimeOnly 'com.h2database:h2'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'                    // json 파일 직렬/역직렬화 기능 제공
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	//implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	testImplementation 'org.springframework.security:spring-security-test'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	implementation 'javax.xml.bind:jaxb-api:2.3.1'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'org.jsoup:jsoup:1.14.3'											// HTML Sanitization(게시물 첨부파일 처리를 위한 라이브러리)
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'		// Redis 라이브러리
+	implementation 'org.springframework.boot:spring-boot-starter-cache'				// Cache 라이브러리
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

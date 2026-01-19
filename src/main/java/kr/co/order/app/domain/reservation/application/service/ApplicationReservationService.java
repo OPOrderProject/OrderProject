@@ -62,6 +62,7 @@ public class ApplicationReservationService implements ReservationUseCase {
         for (int attempt = 1; attempt<=maxRetry; attempt++){
             try {
                 cancelOnce(reservationId, user);
+                return;
             } catch (OptimisticLockException e){
                 if(attempt == maxRetry){
                     throw new IllegalArgumentException("현재 요청이 너무 많아 처리에 실패했습니다. 다시 시도해 주세요.");

@@ -5,6 +5,8 @@ import kr.co.order.app.domain.reservation.domain.Reservation;
 import kr.co.order.app.domain.reservation.infrastructure.repository.ReservationRepository;
 import kr.co.order.app.domain.restaurant.domain.Restaurant;
 import kr.co.order.app.domain.user.domain.User;
+import kr.co.order.app.global.exception.reservation.ReservationException;
+import kr.co.order.app.global.exception.reservation.ReservationExceptionType;
 import kr.co.order.app.global.util.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,7 +33,7 @@ public class ReservationJpaAdapter implements ReservationJpaPort {
     @Override
     public Reservation findById(Long id) {
         return reservationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("예약건이 존재하지 않습니다."));
+                .orElseThrow(() -> new ReservationException(ReservationExceptionType.RESERVATION_NOT_FOUND));
     }
 
     @Override

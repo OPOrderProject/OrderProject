@@ -4,6 +4,7 @@ import kr.co.order.app.domain.restaurant.application.port.in.CreateRestaurantUse
 import kr.co.order.app.domain.restaurant.application.port.out.RestaurantJpaPort;
 import kr.co.order.app.domain.restaurant.domain.Restaurant;
 import kr.co.order.app.domain.restaurant.presentation.dto.CreateRestaurantDTO;
+import kr.co.order.app.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +15,8 @@ public class CreateRestaurantService implements CreateRestaurantUseCase {
     private final RestaurantDomainService restaurantDomainService;
 
     @Override
-    public Restaurant save(CreateRestaurantDTO dto) {
-        Restaurant restaurant = restaurantDomainService.createEntity(dto);
+    public Restaurant save(CreateRestaurantDTO dto, User user) {
+        Restaurant restaurant = restaurantDomainService.createEntity(dto, user);
 
         return restaurantJpaPort.save(restaurant);
     }

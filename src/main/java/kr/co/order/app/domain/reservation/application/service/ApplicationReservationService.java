@@ -12,6 +12,10 @@ import kr.co.order.app.domain.timeSlot.application.port.in.QueryTimeSlotUseCase;
 import kr.co.order.app.domain.timeSlot.application.port.in.UpdateTimeSlotUseCase;
 import kr.co.order.app.domain.timeSlot.domain.TimeSlot;
 import kr.co.order.app.domain.user.domain.User;
+import kr.co.order.app.global.exception.reservation.ReservationException;
+import kr.co.order.app.global.exception.reservation.ReservationExceptionType;
+import kr.co.order.app.global.exception.restaurant.RestaurantException;
+import kr.co.order.app.global.exception.restaurant.RestaurantExceptionType;
 import kr.co.order.app.global.util.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,17 +42,17 @@ public class ApplicationReservationService implements ReservationUseCase {
     public Reservation save(CreateReservationDTO dto, User user) {
         Restaurant restaurant = queryRestaurantUseCase.findById(dto.getRestaurantId());
         if(checkReservationUseCase.existsReservationByRestaurantAndUserAndStatus(restaurant, user, ReservationStatus.RESERVED)){
-            throw new IllegalArgumentException("이미 금일 예약 이력이 있습니다.");
+            throw new ReservationException(ReservationExceptionType.RESERVATION_DUPLICATION_ERROR);
         }
 
-        int maxRetry = 3;
+        int maxRetry = 5;
 
         for(int attempt = 1; attempt<=maxRetry; attempt++){
             try {
                 return reserveOnce(dto, restaurant, user);
             } catch (OptimisticLockException e){
                 if(attempt == maxRetry){
-                    throw new IllegalArgumentException("해당 시간대에 예약 요청이 많아 처리에 실패했습니다. 나중에 다시 시도해 주세요.");
+                    throw new ReservationException(ReservationExceptionType.RESERVATION_TRAFFIC_ERROR);
                 }
             }
         }
@@ -57,7 +61,7 @@ public class ApplicationReservationService implements ReservationUseCase {
 
     @Override
     public void cancel(Long reservationId, User user) {
-        int maxRetry = 3;
+        int maxRetry = 5;
 
         for (int attempt = 1; attempt<=maxRetry; attempt++){
             try {
@@ -65,7 +69,7 @@ public class ApplicationReservationService implements ReservationUseCase {
                 return;
             } catch (OptimisticLockException e){
                 if(attempt == maxRetry){
-                    throw new IllegalArgumentException("현재 요청이 너무 많아 처리에 실패했습니다. 다시 시도해 주세요.");
+                    throw new ReservationException(ReservationExceptionType.RESERVATION_TRAFFIC_ERROR);
                 }
             }
         }
@@ -76,10 +80,10 @@ public class ApplicationReservationService implements ReservationUseCase {
     public Reservation modify(Long reservationId, ModifyReservationDTO dto, User user) {
         Reservation reservation = queryReservationUseCase.findById(reservationId);
         if(!reservation.certification(user)){
-            throw new IllegalArgumentException("예약자 본인이 아닙니다.");
+            throw new ReservationException(ReservationExceptionType.NOT_AUTHORITY_UPDATE_RESERVATION);
         }
 
-        int maxRetry = 3;
+        int maxRetry = 5;
 
         for (int attempt = 1; attempt<=maxRetry; attempt++){
             try {
@@ -87,7 +91,7 @@ public class ApplicationReservationService implements ReservationUseCase {
                 return reservation;
             } catch (OptimisticLockException e){
                 if(attempt == maxRetry){
-                    throw new IllegalArgumentException("현재 요청이 너무 많아 처리에 실패했습니다. 다시 시도해 주세요.");
+                    throw new ReservationException(ReservationExceptionType.RESERVATION_TRAFFIC_ERROR);
                 }
             }
         }
@@ -96,10 +100,25 @@ public class ApplicationReservationService implements ReservationUseCase {
 
     @Override
     @Transactional
-    public void confirmReservation(Long id, User user) {
+    public void confirmReservationByUser(Long id, User user) {
         Reservation reservation = queryReservationUseCase.findById(id);
+        if(!reservation.certification(user)){
+            throw new ReservationException(ReservationExceptionType.NOT_AUTHORITY_UPDATE_RESERVATION);
+        }
 
-        updateReservationUseCase.updateStatus(reservation, ReservationStatus.RESERVED, user);
+        updateReservationUseCase.updateStatus(reservation, ReservationStatus.RESERVED);
+    }
+
+    @Override
+    @Transactional
+    public void confirmReservationByRestaurant(Long id, User user) {
+        Reservation reservation = queryReservationUseCase.findById(id);
+        Restaurant restaurant = reservation.getRestaurant();
+        if(!restaurant.certification(user)){
+            throw new RestaurantException(RestaurantExceptionType.RESTAURANT_AUTHORITY_ERROR);
+        }
+
+        updateReservationUseCase.updateStatus(reservation, ReservationStatus.COMPLETE);
     }
 
     @Override
@@ -110,9 +129,12 @@ public class ApplicationReservationService implements ReservationUseCase {
     }
 
     @Override
-    public Page<ResponseReservationDTO> getReservationListByRestaurant(int page, int size, String condition, Long restaurantId) {
-        Pageable pageable = switchCondition(page, size, condition);
+    public Page<ResponseReservationDTO> getReservationListByRestaurant(int page, int size, String condition, Long restaurantId, User user) {
         Restaurant restaurant = queryRestaurantUseCase.findById(restaurantId);
+        if(!restaurant.certification(user)){
+            throw new RestaurantException(RestaurantExceptionType.RESTAURANT_AUTHORITY_ERROR);
+        }
+        Pageable pageable = switchCondition(page, size, condition);
 
         return queryReservationUseCase.findAllByRestaurantForDTO(restaurant, pageable);
     }
@@ -134,13 +156,13 @@ public class ApplicationReservationService implements ReservationUseCase {
     protected void cancelOnce(Long reservationId, User user){
         Reservation reservation = queryReservationUseCase.findById(reservationId);
         if(!reservation.certification(user)){
-            throw new IllegalArgumentException("예약자 본인이 아닙니다.");
+            throw new ReservationException(ReservationExceptionType.NOT_AUTHORITY_UPDATE_RESERVATION);
         }
 
         List<TimeSlot> slots = queryTimeSlotUseCase.findByRestaurantAndStartTime(reservation.getRestaurant(),
                 reservation.getStartTime(), reservation.getEndTime());
         updateTimeSlotUseCase.cancel(slots);
-        updateReservationUseCase.updateStatus(reservation, ReservationStatus.CANCELED, user);
+        updateReservationUseCase.updateStatus(reservation, ReservationStatus.CANCELED);
     }
 
     @Transactional

@@ -8,10 +8,12 @@ import kr.co.order.app.domain.restaurant.domain.Restaurant;
 import kr.co.order.app.domain.restaurant.presentation.dto.CreateRestaurantDTO;
 import kr.co.order.app.domain.restaurant.presentation.dto.ResponseRestaurantDTO;
 import kr.co.order.app.domain.restaurant.presentation.dto.ResponseRestaurantInfoDTO;
+import kr.co.order.app.global.config.auth.PrincipalDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,8 +27,9 @@ public class RestaurantController {
 
     @PostMapping("/save")
     @Operation(summary = "레스토랑 등록", description = "레스토랑 정보를 받아 저장")
-    public ResponseEntity<Restaurant> save(@Valid @RequestBody CreateRestaurantDTO createRestaurantDTO){
-        return ResponseEntity.status(HttpStatus.CREATED).body(restaurantUseCase.save(createRestaurantDTO));
+    public ResponseEntity<Restaurant> save(@Valid @RequestBody CreateRestaurantDTO createRestaurantDTO,
+                                           @AuthenticationPrincipal PrincipalDetails principalDetails){
+        return ResponseEntity.status(HttpStatus.CREATED).body(restaurantUseCase.save(createRestaurantDTO, principalDetails.getUser()));
     }
 
     @GetMapping("/find-all")

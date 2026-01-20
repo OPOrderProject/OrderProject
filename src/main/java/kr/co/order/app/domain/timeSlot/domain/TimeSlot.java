@@ -35,7 +35,7 @@ public class TimeSlot {
     private int reservedCount;
 
     @Version
-    private Long version;
+    private Long version; // 동시 예약 충돌을 방지하기 위한 엔티티 버전 관리용 필드
 
     public void cancel(){
         this.reservedCount++;

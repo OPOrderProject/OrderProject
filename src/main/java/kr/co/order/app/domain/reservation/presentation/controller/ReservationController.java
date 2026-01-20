@@ -45,8 +45,9 @@ public class ReservationController {
     public ResponseEntity<List<ResponseReservationDTO>> getReservationListByRestaurant(@PathVariable Long id,
                                                                                        @RequestParam(value = "page", defaultValue = "0") int page,
                                                                                        @RequestParam(value = "size", defaultValue = "10") int size,
-                                                                                       @RequestParam(value = "condition", defaultValue = "new") String condition){
-        Page<ResponseReservationDTO> newPage = reservationUseCase.getReservationListByRestaurant(page, size, condition, id);
+                                                                                       @RequestParam(value = "condition", defaultValue = "new") String condition,
+                                                                                       @AuthenticationPrincipal PrincipalDetails principalDetails){
+        Page<ResponseReservationDTO> newPage = reservationUseCase.getReservationListByRestaurant(page, size, condition, id, principalDetails.getUser());
         return ResponseEntity.status(HttpStatus.OK).body(newPage.getContent());
     }
 
@@ -58,8 +59,15 @@ public class ReservationController {
 
     @PatchMapping("/reservation-confirm/{id}")
     @Operation(summary = "예약 확인", description = "예약 시간 선택 후 최종 예약 확인")
-    public ResponseEntity<Void> confirmReservation(@PathVariable Long id, @AuthenticationPrincipal PrincipalDetails principalDetails){
-        reservationUseCase.confirmReservation(id, principalDetails.getUser());
+    public ResponseEntity<Void> confirmReservationByUser(@PathVariable Long id, @AuthenticationPrincipal PrincipalDetails principalDetails){
+        reservationUseCase.confirmReservationByUser(id, principalDetails.getUser());
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PatchMapping("/reservation-confirm/restaurant/{id}")
+    @Operation(summary = "예약 확인(레스토랑)", description = "레스토랑 관리자 제한 예약 확인")
+    public ResponseEntity<Void> confirmReservationByRestaurant(@PathVariable Long id, @AuthenticationPrincipal PrincipalDetails principalDetails){
+        reservationUseCase.confirmReservationByRestaurant(id, principalDetails.getUser());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

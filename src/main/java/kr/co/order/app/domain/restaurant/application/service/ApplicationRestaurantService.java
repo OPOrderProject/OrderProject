@@ -8,6 +8,7 @@ import kr.co.order.app.domain.restaurant.presentation.dto.CreateRestaurantDTO;
 import kr.co.order.app.domain.restaurant.presentation.dto.ResponseRestaurantDTO;
 import kr.co.order.app.domain.restaurant.presentation.dto.ResponseRestaurantInfoDTO;
 import kr.co.order.app.domain.timeSlot.application.port.in.CreateTimeSlotUseCase;
+import kr.co.order.app.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,8 +26,8 @@ public class ApplicationRestaurantService implements RestaurantUseCase {
 
     @Override
     @Transactional
-    public Restaurant save(CreateRestaurantDTO dto) {
-        Restaurant restaurant = createRestaurantUseCase.save(dto);
+    public Restaurant save(CreateRestaurantDTO dto, User user) {
+        Restaurant restaurant = createRestaurantUseCase.save(dto, user);
         createTimeSlotUseCase.save(restaurant);
 
         return restaurant;

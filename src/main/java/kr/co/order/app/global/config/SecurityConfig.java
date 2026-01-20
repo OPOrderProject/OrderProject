@@ -66,7 +66,6 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/swagger/**",
                                 "/resources/templates/**",
-                                "/api/v1/restaurant/save",
                                 "/api/v1/restaurant/find-all").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated());

@@ -3,6 +3,8 @@ package kr.co.order.app.domain.restaurant.infrastructure.adapter;
 import kr.co.order.app.domain.restaurant.application.port.out.RestaurantJpaPort;
 import kr.co.order.app.domain.restaurant.domain.Restaurant;
 import kr.co.order.app.domain.restaurant.infrastructure.repository.RestaurantRepository;
+import kr.co.order.app.global.exception.restaurant.RestaurantException;
+import kr.co.order.app.global.exception.restaurant.RestaurantExceptionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +23,7 @@ public class RestaurantJpaAdapter implements RestaurantJpaPort {
     @Override
     public Restaurant findById(Long id) {
         return restaurantRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("레스토랑을 찾지 못했습니다."));
+                .orElseThrow(() -> new RestaurantException(RestaurantExceptionType.RESTAURANT_NOT_FOUND));
     }
 
     @Override

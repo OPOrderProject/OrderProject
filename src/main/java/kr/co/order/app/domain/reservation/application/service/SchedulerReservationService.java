@@ -40,7 +40,7 @@ public class SchedulerReservationService {
 
     public void cancelByScheduler(Long reservationId) {
 
-        int maxRetry = 3;
+        int maxRetry = 5;
 
         for (int attempt = 1; attempt <= maxRetry; attempt++) {
             try {
@@ -61,6 +61,6 @@ public class SchedulerReservationService {
         List<TimeSlot> slots = queryTimeSlotUseCase.findByRestaurantAndStartTime(reservation.getRestaurant(),
                 reservation.getStartTime(), reservation.getEndTime());
         updateTimeSlotUseCase.cancel(slots);
-        updateReservationUseCase.schedulerCancelReservation(reservation, ReservationStatus.CANCELED);
+        updateReservationUseCase.updateStatus(reservation, ReservationStatus.CANCELED);
     }
 }
